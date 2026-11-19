@@ -24,7 +24,7 @@ _SRC_DIR = Path(__file__).resolve().parent
 if str(_SRC_DIR) not in sys.path:
     sys.path.insert(0, str(_SRC_DIR))
 
-from core.config import setup_api_key
+from core.config import get_openrouter_api_key, get_red_provider, get_openai_api_key
 
 
 async def part2_guardrails():
@@ -134,10 +134,19 @@ async def part4_attacks():
 
 
 async def main(parts=None):
-    setup_api_key()
-
     if parts is None:
         parts = [2, 3, 4]  # Core: CP2 → CP3 → CP4
+
+    # CP2 is deterministic and should run without keys or interactive prompts.
+    import os
+    if 3 in parts:
+        key = get_openrouter_api_key()
+        if not key or key == "sk-or-...":
+            raise RuntimeError("Điền OPENROUTER_API_KEY thật trong .env trước khi chạy CP3.")
+    if 4 in parts:
+        key = os.environ.get("GOOGLE_API_KEY", "").strip() if get_red_provider() == "gemini" else get_openai_api_key()
+        if not key or key in {"sk-...", "your-google-ai-studio-key-here"}:
+            raise RuntimeError("Điền API key Red thật trong .env trước khi chạy CP4.")
 
     for part in parts:
         if part == 2:

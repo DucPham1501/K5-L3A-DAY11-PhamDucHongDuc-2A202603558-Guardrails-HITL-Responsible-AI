@@ -1,5 +1,38 @@
 # Day 11 — Controlled Agent Security (2026)
 
+**Bài làm:** Phạm Đức Hồng Đức · **MSSV:** 2A202603558 · **Lớp:** K5-L3A.
+
+### Chạy bài trên Windows
+
+```powershell
+.\.venv\Scripts\python.exe src/main.py --part 2
+.\.venv\Scripts\python.exe src/main.py --part 3
+.\.venv\Scripts\python.exe src/main.py --part 4
+.\.venv\Scripts\python.exe -m pytest tests/smoke tests/public -q
+.\.venv\Scripts\python.exe scripts/grade.py --submission-dir . --out outputs/grade_report.json
+```
+
+Trước lần chạy đầu, tạo `.venv`, cài `requirements.txt`, sao chép `.env.example`
+thành `.env` và điền key thật ở máy cá nhân. CP2 và các test local không cần key.
+CP3 cần key OpenRouter; CP4 cần key của provider Red được chọn. Không commit `.env`.
+
+Pipeline Blue dùng OpenRouter với plugin theo thứ tự rate limit → input guardrail →
+output guardrail. Audit và monitoring là các observer trong bộ chạy, dùng request ID
+để ghép input/output; nội dung nhạy cảm được che trước khi ghi audit. Egress chỉ cho
+phép HTTPS đến `api.vinbank.example` hoặc `cases.vinbank.example`, không chứa PII/secret.
+Kiểm tra egress chạy riêng trước khi gửi tới một đích; lab không thực hiện giao dịch thật.
+
+CP3 chạy các câu hỏi qua model thật. Nhóm spam kiểm tra trực tiếp callback rate limiter,
+không gọi LLM, và ghi rõ phạm vi này trong JSON. Các nhóm test được tách cửa sổ rate
+limit để kết quả chặn injection không bị lẫn với chặn spam. Lỗi provider khiến suite
+dừng và ghi audit lỗi, không tạo kết quả thành công giả.
+
+Test hồi quy dùng model giả và thư mục tạm, không tạo artifact nộp trong `outputs/`.
+Bốn test contract kết quả sẽ được bỏ qua khi chưa chạy CP3 sinh `results.json`.
+`grade.py` tự sinh báo cáo; khi chưa có kết quả API thật, báo cáo sẽ ghi thiếu artifact.
+
+---
+
 > 👤 **Hình thức:** bài tập **cá nhân** (1 người / 1 MSSV).  
 > 🎯 **Mục tiêu:** đóng vai **Blue Team** để học cách xây Guardrails phòng thủ, rồi đóng vai **Red Team** để tấn công agent **Red** hoặc **Red Advance**.  
 > ✅ Làm theo **Checkpoint 1 → 5** trong [`CHECKPOINTS.md`](CHECKPOINTS.md) · nộp theo [`SUBMISSION.md`](SUBMISSION.md).
